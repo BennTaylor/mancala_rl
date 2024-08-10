@@ -23,7 +23,7 @@ epsilon = 1.0
 lr = 0.001
 batch_size = 64
 
-num_games = 500
+num_games = 10000
 
 if __name__ == '__main__':
     p1_wins = [0] * num_games
@@ -43,7 +43,7 @@ if __name__ == '__main__':
                 # agent1's turn
                 action = agent1.choose_action(observation)
 
-                g.action(action + 1) # plus 1 cuz zero-indexing thing
+                g.action(action, zero_ind=True)
                 new_observation = g.observation()
 
                 # get reward; for now only associate with game win
@@ -72,7 +72,7 @@ if __name__ == '__main__':
                 # agent2's turn
                 action = agent2.choose_action(observation)
 
-                g.action(action + 1)
+                g.action(action, zero_ind=True)
                 new_observation = g.observation()
 
                 # get reward; for now only associate with game win

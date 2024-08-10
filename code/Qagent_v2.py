@@ -21,7 +21,7 @@ class MyQAgent:
     - n_actions: This is fixed for the game
     - max_mem_sz: batch stuff
     '''
-    def __init__(self, gamma, epsilon, lr, eps_end=0.01, eps_dec=5e-3):
+    def __init__(self, gamma, epsilon, lr, eps_end=0.01, eps_dec=5e-4):
         self.gamma = gamma
         self.epsilon = epsilon      # proportion of time taking random actions
         self.eps_min = eps_end
@@ -73,9 +73,13 @@ class MyQAgent:
             r = 0
         self.reward_memory[self.mem_cnt - 1] += r
 
-    def choose_action(self, observation):
+    '''
+    playing is a boolean flag to indicate when agent should only choose model's decision 
+    (i.e. when playing against human).
+    '''
+    def choose_action(self, observation, playing=False):
         wells, legal_actions = observation
-        if np.random.random() > self.epsilon:
+        if playing or np.random.random() > self.epsilon:
             state = torch.tensor(wells, dtype=torch.float32).to(self.Q_eval.device)
             actions = self.Q_eval.forward(state)
             actions = actions[legal_actions]

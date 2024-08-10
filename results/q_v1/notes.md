@@ -1,3 +1,6 @@
+# UPDATE
+Observations should be disregarded, there was a catastrophic bug in my training implementation (failed to properly reset the game at each iteration, whoops). Thoughts on how to improve still stand.
+
 # Q-agent vs Q-agent version 1 training notes
 These are the training results of the most preliminary versions of the model. The model architecture at this point is essentially exactly as implemented in this video, just modified to handle the specific application to the game of mancala: https://www.youtube.com/watch?v=wc-FxNENg9U
 

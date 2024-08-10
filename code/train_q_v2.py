@@ -18,21 +18,21 @@ HYPERPARAMETERS
 '''
 gamma = 0.99
 epsilon = 1.0
-lr = 0.001
+lr = 1e-4
 
-num_games = 25000
+num_games = 100000
 
-x = 50 # during training, print p1 win rate out of last x games
+x = 250 # during training, print p1 win rate out of last x games
 
-if __name__ == '__main__':
+def train(a1, a2):
     p1_wins = [0] * num_games
     p2_wins = [0] * num_games
     ties = 0
 
     num_turns = [0] * num_games
 
-    agent1 = MyQAgent(gamma, epsilon, lr)
-    agent2 = MyQAgent(gamma, epsilon, lr)
+    agent1 = a1
+    agent2 = a2
 
     for iter in range(num_games):
         g = Mancala()
@@ -104,6 +104,7 @@ if __name__ == '__main__':
     
 
     print(f'\n------ Training complete ------')
+    print(f'p1 wins: {p1_wins[-1]}, p2 wins: {p2_wins[-1]}')
     print('Num turns:')
     print(f'min= {min(num_turns)}')
     print(f'max= {max(num_turns)}')
@@ -126,3 +127,53 @@ if __name__ == '__main__':
 
     # Display the plot
     plt.show()
+
+    # return better agent based on last 1000 games
+    if num_games < 2000:
+        return agent1
+    
+    if (p1_wins[-1] - p1_wins[-1000]) > 500:
+        print('Selecting agent1 from training')
+        return agent1
+    else:
+        return agent2
+    
+def play_vs_agent(agent):
+    print('Enter \'c\' to play game against agent: ')
+    cont = input()
+    while(cont == 'c'):
+        game = Mancala()
+
+        while not game.over:
+            game.print_board()
+            p1 = (game.turn % 2 == 1)
+            if p1:
+                print(f'(turn {game.turn}) Player, enter a well to empty:')
+                w = int(input())
+                game.action(w, zero_ind=False)
+                print()
+            else:
+                w = agent.choose_action(game.observation(), playing=True)
+                print(f'(turn {game.turn}) Agent picks well {w + 1}.\n')
+                game.action(w, zero_ind=True)
+
+        game.print_board()
+        if game.wells[6] > game.wells[13]:
+            print(f'Player 1 wins \np1: {game.wells[6]} \np2: {game.wells[13]}')
+        elif game.wells[6] < game.wells[13]:
+            print(f'Player 2 wins \np1: {game.wells[6]} \np2: {game.wells[13]}')
+        else:
+            print(f'Tie \np1: {game.wells[6]} \np2: {game.wells[13]}')
+        print('-------------------------------------------------')
+        print('Enter \'c\' to play another game against agent: ')
+        cont = input()  
+        
+
+if __name__ == '__main__':
+    agent1 = MyQAgent(gamma, epsilon, lr)
+    agent2 = MyQAgent(gamma, epsilon, lr)
+
+    # train returns better agent
+    a = train(agent1, agent2)
+
+    play_vs_agent(a)

@@ -28,6 +28,7 @@ class Mancala:
     Initializes mancala board with starting marbles, begins turn counter.
     '''
     def __init__(self):
+        self.wells = [0] * 14
         self.wells[0:6] = [4] * 6
         self.wells[7:13] = [4] * 6
         self.turn = 1
@@ -100,16 +101,18 @@ class Mancala:
             marbles -= 1
             
         # capture opposite marbles when landing in empty well
-        if p1 and i >= 1 and i < 7 and self.wells[i - 1] == 1:
+        if p1 and i >= 1 and i < 7 and self.wells[i - 1] == 1 and self.wells[13 - i] != 0:
             self.wells[6] += self.wells[13 - i] + 1
             self.wells[i - 1] = 0
             self.wells[13 - i] = 0
-        if not p1 and i >= 8 and i < 14 and self.wells[i - 1] == 1:
+        if not p1 and i >= 8 and i < 14 and self.wells[i - 1] == 1 and self.wells[13 - i] != 0:
             self.wells[13] += self.wells[13 - i] + 1
             self.wells[i - 1] = 0
             self.wells[13 - i] = 0
 
         if self.check_end():
+            if self.wells[6] + self.wells[13] != 48:
+                print(f'MANCALA ERROR: impossible sum reached; board: {self.wells}')
             return 4, True, self.wells
         
         # account for turn continuation when last marble put in well
