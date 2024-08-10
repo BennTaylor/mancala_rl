@@ -1,37 +1,38 @@
 import importlib
 import mancala
 import Qnetwork
-import agent
+import Qagent_v2
 
 importlib.reload(mancala)
 importlib.reload(Qnetwork)
-importlib.reload(agent)
+importlib.reload(Qagent_v2)
 
 from mancala import Mancala, GameResponse
 from Qnetwork import QNetwork
-from agent import Agent
+from Qagent_v2 import MyQAgent
 import numpy as np
 import torch
 
 '''
 HYPERPARAMETERS
 '''
-INPUT_DIMS = 14     # just the size of the board
-N_ACTIONS = 6       # wells to choose from
 gamma = 0.99
 epsilon = 1.0
 lr = 0.001
-batch_size = 64
 
-num_games = 1000
+num_games = 25000
+
+x = 50 # during training, print p1 win rate out of last x games
 
 if __name__ == '__main__':
     p1_wins = [0] * num_games
     p2_wins = [0] * num_games
     ties = 0
 
-    agent1 = Agent(gamma, epsilon, lr, INPUT_DIMS, batch_size, N_ACTIONS)
-    agent2 = Agent(gamma, epsilon, lr, INPUT_DIMS, batch_size, N_ACTIONS)
+    num_turns = [0] * num_games
+
+    agent1 = MyQAgent(gamma, epsilon, lr)
+    agent2 = MyQAgent(gamma, epsilon, lr)
 
     for iter in range(num_games):
         g = Mancala()
@@ -41,7 +42,7 @@ if __name__ == '__main__':
                 # agent1's turn
                 action = agent1.choose_action(observation)
 
-                g.action(action + 1) # plus 1 cuz zero-indexing thing
+                g.action(action, zero_ind=True)
                 new_observation = g.observation()
 
                 # get reward; for now only associate with game win
@@ -51,7 +52,7 @@ if __name__ == '__main__':
                         p1_wins[iter] = p1_wins[iter-1] + 1
                         p2_wins[iter] = p2_wins[iter-1]
                     elif g.wells[6] < g.wells[13]:
-                        reward = -10
+                        reward = -0.5
                         p1_wins[iter] = p1_wins[iter-1]
                         p2_wins[iter] = p2_wins[iter-1] + 1
                     else:
@@ -63,14 +64,13 @@ if __name__ == '__main__':
                     reward = 0
 
                 agent1.store_transition(observation[0], action, reward, new_observation[0], g.over)
-                agent1.learn()
+                agent2.update_reward(reward)
                 observation = new_observation
-
             else:
                 # agent2's turn
                 action = agent2.choose_action(observation)
 
-                g.action(action + 1)
+                g.action(action, zero_ind=True)
                 new_observation = g.observation()
 
                 # get reward; for now only associate with game win
@@ -82,7 +82,7 @@ if __name__ == '__main__':
                     elif g.wells[13] < g.wells[6]:
                         p1_wins[iter] = p1_wins[iter-1] + 1
                         p2_wins[iter] = p2_wins[iter-1]
-                        reward = -10
+                        reward = -0.5
                     else:
                         reward = 0
                         p1_wins[iter] = p1_wins[iter-1]
@@ -92,13 +92,22 @@ if __name__ == '__main__':
                     reward = 0
 
                 agent2.store_transition(observation[0], action, reward, new_observation[0], g.over)
-                agent2.learn()
+                agent1.update_reward(reward)
                 observation = new_observation
+        # learning only after each game!
+        agent1.learn()
+        agent2.learn()
 
-        print(f'iter {iter}: p1 wins= {p1_wins[iter]}', end='\r')
+        num_turns[iter] = g.turn
+        if iter > x:
+            print(f'game {iter}: p1 win rate in last {x} games = {np.trunc(100 * (p1_wins[iter] - p1_wins[iter-x]) / x)}%', end='\r')
     
 
     print(f'\n------ Training complete ------')
+    print('Num turns:')
+    print(f'min= {min(num_turns)}')
+    print(f'max= {max(num_turns)}')
+    print(f'avg= {sum(num_turns) / num_games}')
 
     import matplotlib.pyplot as plt
 
@@ -108,9 +117,9 @@ if __name__ == '__main__':
 
 
     # Add labels and a title
-    plt.xlabel('training epoch')
+    plt.xlabel('games played')
     plt.ylabel('wins')
-    plt.title('Training results')
+    plt.title('Two Q-agents v2')
 
     # Add a legend
     plt.legend()

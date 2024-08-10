@@ -52,6 +52,7 @@ class Mancala:
 
     '''
     Player takes action by displacing marbles from well i (counted 1-6 from player's perspective).
+    - flag zero_ind indicates if input should be interpreted as zero indexed well
 
     Adjusts turn counter once player's turn is completed.
         - game loop should check this, prompting agent to take additional action when turn not over.
@@ -61,11 +62,11 @@ class Mancala:
         - boolean flag if player 1's turn
         - array of marbles in wells         **** consider packaging this information differently
     '''
-    def action(self, well):
+    def action(self, well, zero_ind=False):
         if self.over:
             print('Illegal action: game ended')
             return 4, None, None
-        
+        well += zero_ind
         # boolean flag for if player 1's turn
         p1 = (self.turn % 2 == 1)
 
@@ -139,7 +140,7 @@ class Mancala:
     Observation function to be used by Agent class(es).
     Returns:
     - list of wells (reindixed as if current player always player 1)
-    - list of legal moves
+    - list of legal moves (0-indexing on player's 6 wells)
     '''
     def observation(self):
         if self.turn % 2 == 1:
