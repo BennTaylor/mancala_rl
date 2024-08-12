@@ -10,3 +10,8 @@ Here is the breakdown of the repo structure:
     - [Qnetwork.py](/code/Qnetwork.py): Class for the deep Q network architecture, extended from torch.nn.Module.
     - [agent.py](/code/agent.py): Class for Q-learning agent handling parameter updates (learning), game actions (uses Qnetwork).
     - [train.py](/code/train.py): Training loop for two Q-learning agents to play against each other.
+
+### Resources / References
+List of resources I've referred to or want to look into:
+- [A Simple Alpha(Go) Zero Tutorial](https://suragnair.github.io/posts/alphazero.html)
+- [Alpha Zero repo](https://github.com/suragnair/alpha-zero-general)

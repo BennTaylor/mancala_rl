@@ -65,13 +65,7 @@ class MyQAgent:
     def update_reward(self, opponent_reward):
         if self.mem_cnt == 0:
             return
-        if opponent_reward == 10:
-            r = -0.5
-        elif opponent_reward == -0.5:
-            r = 10
-        else:
-            r = 0
-        self.reward_memory[self.mem_cnt - 1] += r
+        self.reward_memory[self.mem_cnt - 1] -= opponent_reward
 
     '''
     playing is a boolean flag to indicate when agent should only choose model's decision 

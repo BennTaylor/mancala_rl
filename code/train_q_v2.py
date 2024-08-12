@@ -20,13 +20,16 @@ gamma = 0.99
 epsilon = 1.0
 lr = 1e-4
 
-num_games = 100000
+num_games = 10000
 
 x = 250 # during training, print p1 win rate out of last x games
 
 def train(a1, a2):
     p1_wins = [0] * num_games
     p2_wins = [0] * num_games
+    xs = []
+    p1_rate = []
+    p2_rate = []
     ties = 0
 
     num_turns = [0] * num_games
@@ -48,11 +51,11 @@ def train(a1, a2):
                 # get reward; for now only associate with game win
                 if g.over:
                     if g.wells[6] > g.wells[13]:
-                        reward = 10
+                        reward = 1
                         p1_wins[iter] = p1_wins[iter-1] + 1
                         p2_wins[iter] = p2_wins[iter-1]
                     elif g.wells[6] < g.wells[13]:
-                        reward = -0.5
+                        reward = -1
                         p1_wins[iter] = p1_wins[iter-1]
                         p2_wins[iter] = p2_wins[iter-1] + 1
                     else:
@@ -78,11 +81,11 @@ def train(a1, a2):
                     if g.wells[13] > g.wells[6]:
                         p1_wins[iter] = p1_wins[iter-1]
                         p2_wins[iter] = p2_wins[iter-1] + 1
-                        reward = 10
+                        reward = 1
                     elif g.wells[13] < g.wells[6]:
                         p1_wins[iter] = p1_wins[iter-1] + 1
                         p2_wins[iter] = p2_wins[iter-1]
-                        reward = -0.5
+                        reward = -1
                     else:
                         reward = 0
                         p1_wins[iter] = p1_wins[iter-1]
@@ -99,8 +102,15 @@ def train(a1, a2):
         agent2.learn()
 
         num_turns[iter] = g.turn
+        p1r = (p1_wins[iter] - p1_wins[iter-x]) / x
+        p2r = (p2_wins[iter] - p2_wins[iter-x]) / x
         if iter > x:
-            print(f'game {iter}: p1 win rate in last {x} games = {np.trunc(100 * (p1_wins[iter] - p1_wins[iter-x]) / x)}%', end='\r')
+            print(f'game {iter}: p1 win rate in last {x} games = {np.trunc(100 * p1r)}%', end='\r')
+        if (iter+1) % x == 0:
+            xs.append(iter+1)
+            p1_rate.append(p1r)
+            p2_rate.append(p2r)
+
     
 
     print(f'\n------ Training complete ------')
@@ -112,7 +122,7 @@ def train(a1, a2):
 
     import matplotlib.pyplot as plt
 
-    # Create the plot
+    # TOTAL WINS PLOT
     plt.plot([i+1 for i in range(num_games)], p1_wins, label='p1', linestyle='-', color='b')
     plt.plot([i+1 for i in range(num_games)], p2_wins, label='p2', linestyle='-', color='g')
 
@@ -120,6 +130,22 @@ def train(a1, a2):
     # Add labels and a title
     plt.xlabel('games played')
     plt.ylabel('wins')
+    plt.title('Two Q-agents v2')
+
+    # Add a legend
+    plt.legend()
+
+    # Display the plot
+    plt.show()
+
+    # WIN RATE PLOT
+    plt.plot(xs, p1_rate, label='p1', linestyle='-', color='b')
+    plt.plot(xs, p2_rate, label='p2', linestyle='-', color='g')
+
+
+    # Add labels and a title
+    plt.xlabel('games played')
+    plt.ylabel(f'win rate (last {x} games)')
     plt.title('Two Q-agents v2')
 
     # Add a legend
@@ -136,6 +162,7 @@ def train(a1, a2):
         print('Selecting agent1 from training')
         return agent1
     else:
+        print('Selecting agent2 from training')
         return agent2
     
 def play_vs_agent(agent):
